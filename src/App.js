@@ -23,16 +23,16 @@ const Menu = (props) => {
           </div>
           <Notification notification={props.notification}/>
 
-          <Route exact path="/" render={() => <AnecdoteList anecdotes={props.anecdotes}/>} />
+          <Route exact path="/" render={() => <AnecdoteList anecdotes={props.anecdotes} vote={props.vote} />} />
           <Route path="/new" render={() =>
             props.notification ? 
               <Redirect to="/" /> 
             : 
-              <CreateNew addNew={props.addNew} setNotification={props.setNotification}/>
+              <CreateNew addNew={props.addNew} setNotification={props.setNotification} />
           } />
           <Route path="/about" render={() => <About />} />
           <Route exact path="/anecdotes/:id" render={({ match }) =>
-            <Anecdote anecdote={anecdoteById(match.params.id)} />
+            <Anecdote anecdote={anecdoteById(match.params.id)} vote={props.vote} setNotification={props.setNotification} />
           } />
         </div>
       </Router>      
@@ -53,14 +53,26 @@ const AnecdoteList = (props) => (
   </div>
 )
 
-const Anecdote = ({ anecdote }) => (
-  <div>
-    <h2>{anecdote.content}</h2>
-    <div>{anecdote.author}</div>
-    <div>{anecdote.info}</div>
-    <div><strong>{anecdote.votes}</strong></div>
-  </div>
-)
+const Anecdote = (props) => {
+  const handleVote = (e) => {
+    e.preventDefault()
+    console.log("voting: ", e.target.id)
+    props.vote(e.target.id)
+    props.setNotification("Voted!")
+    setTimeout(() => {
+      props.setNotification(null)
+    }, 2000)
+  }
+
+  return (
+    <div>
+      <h2>{props.anecdote.content}</h2>
+      <div>{props.anecdote.author}</div>
+      <div>{props.anecdote.info}</div>
+      <div><strong>{props.anecdote.votes}</strong><button onClick={handleVote} id={props.anecdote.id}>vote</button></div>
+    </div>
+  )
+}
 
 const About = () => (
   <div>
@@ -131,7 +143,6 @@ const CreateNew = (props) => {
       </form>
     </div>
   )
-
 }
 
 const App = () => {
@@ -160,20 +171,18 @@ const App = () => {
     setAnecdotes(anecdotes.concat(anecdote))
   }
 
-/*
   const anecdoteById = (id) =>
     anecdotes.find(a => a.id === id)
+
   const vote = (id) => {
     const anecdote = anecdoteById(id)
-
     const voted = {
       ...anecdote,
       votes: anecdote.votes + 1
     }
-
     setAnecdotes(anecdotes.map(a => a.id === id ? voted : a))
   }
-*/
+
   return (
     <div>
       <h1>Software anecdotes</h1>
@@ -182,6 +191,7 @@ const App = () => {
         addNew={addNew} 
         setNotification={setNotification}
         notification={notification} 
+        vote={vote}
       />
       <Footer />
     </div>
